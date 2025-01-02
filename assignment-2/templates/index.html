@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        #search-container {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #searchInput {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s ease;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background-color: #45a049;
+        }
+
+        .section-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .movie-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s ease;
+        }
+
+        .movie-item:last-child {
+            border-bottom: none;
+        }
+
+        .movie-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .movie-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .movie-poster {
+            width: 60px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .movie-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .movie-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .movie-year {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background-color: #45a049;
+        }
+
+        .btn-remove {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background-color: #d32f2f;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3em;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast i {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Watch-List (Assignment 2)</h1>
+    
+    <div id="search-container">
+        <input type="text" id="searchInput" placeholder="Search for a movie...">
+        <button class="search-btn" onclick="searchMovies()">
+            <i class="fas fa-search"></i>
+            Search
+        </button>
+    </div>
+
+    <div id="searchResults" class="section-container" style="display: none;">
+        <h2 class="section-title">Search Results</h2>
+        <div id="movieResults"></div>
+    </div>
+    
+    <div id="watchlist-container" class="section-container">
+        <h2 class="section-title">Your Watch-List</h2>
+        <div id="watchlist"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadWatchlist);
+        
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchMovies();
+            }
+        });
+
+        function searchMovies() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+
+            fetch(`/api/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('movieResults');
+                    document.getElementById('searchResults').style.display = 'block';
+                    resultsDiv.innerHTML = '';
+
+                    if (data.Search) {
+                        data.Search.forEach(movie => {
+                            const poster = movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/60x90.png?text=No+Poster';
+                            resultsDiv.innerHTML += `
+                                <div class="movie-item">
+                                    <div class="movie-info">
+                                        <img src="${poster}" class="movie-poster" alt="${movie.Title}">
+                                        <div class="movie-details">
+                                            <span class="movie-title">${movie.Title}</span>
+                                            <span class="movie-year">${movie.Year}</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-add" onclick='addToWatchlist(${JSON.stringify(movie)})'>
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        resultsDiv.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>No results found</h3>
+                                <p>Try different keywords or check the spelling</p>
+                            </div>`;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function addToWatchlist(movie) {
+            const movieData = {
+                title: movie.Title,
+                imdb_id: movie.imdbID,
+                poster: movie.Poster
+            };
+
+            fetch('/api/watchlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(movieData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadWatchlist();
+                showToast(`"${movie.Title}" added to watchlist!`);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function loadWatchlist() {
+            fetch('/api/watchlist')
+                .then(response => response.json())
+                .then(movies => {
+                    const watchlistDiv = document.getElementById('watchlist');
+                    watchlistDiv.innerHTML = '';
+
+                    if (movies.length === 0) {
+                        watchlistDiv.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-film"></i>
+                                <h3>Your watchlist is empty</h3>
+                                <p>Start adding movies to your watchlist!</p>
+                            </div>`;
+                        return;
+                    }
+
+                    movies.forEach(movie => {
+                        const poster = movie.poster !== 'N/A' ? movie.poster : 'https://via.placeholder.com/60x90.png?text=No+Poster';
+                        watchlistDiv.innerHTML += `
+                            <div class="movie-item">
+                                <div class="movie-info">
+                                    <img src="${poster}" class="movie-poster" alt="${movie.title}">
+                                    <div class="movie-details">
+                                        <span class="movie-title">${movie.title}</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-remove" onclick="removeFromWatchlist(${movie.id})">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function removeFromWatchlist(movieId) {
+            fetch(`/api/watchlist/${movieId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadWatchlist();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html> 
