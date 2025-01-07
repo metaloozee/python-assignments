@@ -1,130 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>House Price Predictor</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f5f5;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            font-size: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .prediction-result {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-        }
-
-        .prediction-result h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .prediction-value {
-            font-size: 1.8rem;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 1rem;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai House Price Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                    }
+                }
             }
         }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="container">
-        <h2>Mumbai House Price Predictor</h2>
-        
-        <form action="/predict" method="post" id="predict-form">
-            <div class="form-group">
-                <label for="area">Area (in square feet)</label>
-                <input type="number" id="area" name="area" required>
-            </div>
-            <button type="submit">Predict Price</button>
-        </form>
-        
-        {% if prediction %}
-        <div class="prediction-result">
-            <h4>Predicted House Price:</h4>
-            <p class="prediction-value">₹{{ prediction }}</p>
+<body class="bg-gray-50 text-gray-800 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Mumbai House Price Predictor</h1>
+            <p class="text-gray-600">Get instant price estimates for your property</p>
         </div>
-        {% endif %}
+        
+        <div class="bg-white shadow-lg rounded-xl p-6 sm:p-8">
+            <form action="/predict" method="post" id="predict-form" class="space-y-6">
+                <div>
+                    <label for="area" class="block text-sm font-medium text-gray-700 mb-2">
+                        House Area (in square feet)
+                    </label>
+                    <div class="relative rounded-md shadow-sm">
+                        <input 
+                            type="number" 
+                            id="area" 
+                            name="area" 
+                            required 
+                            min="1"
+                            step="1"
+                            placeholder="Enter area in square feet"
+                            class="block w-full px-4 py-3 rounded-lg border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition duration-150 ease-in-out"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" 
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out">
+                    Get Price Estimate
+                </button>
+            </form>
+
+            <div id="error" class="mt-4 hidden">
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700" id="error-message"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if prediction %}
+            <div class="mt-6 bg-gradient-to-r from-primary to-secondary p-6 rounded-lg shadow-md animate-fade-in">
+                <h4 class="text-white text-lg font-medium mb-2">Estimated House Price</h4>
+                <p class="text-white text-3xl font-bold">₹{{ prediction }}</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <script>
         document.getElementById('predict-form').addEventListener('submit', function(e) {
+            const form = this;
             const areaInput = document.getElementById('area');
+            const errorDiv = document.getElementById('error');
+            const errorMessage = document.getElementById('error-message');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            errorDiv.classList.add('hidden');
+            
             if (areaInput.value <= 0) {
                 e.preventDefault();
-                alert('Please enter a valid area greater than 0');
+                errorMessage.textContent = 'Please enter a valid area greater than 0 square feet';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Calculating...
+            `;
+        });
+
+        document.getElementById('area').addEventListener('input', function(e) {
+            const errorDiv = document.getElementById('error');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (this.value < 0) {
+                this.value = '';
+                errorMessage.textContent = 'Area cannot be negative';
+                errorDiv.classList.remove('hidden');
+            } else {
+                errorDiv.classList.add('hidden');
             }
         });
     </script>
+
+    <style>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out;
+        }
+    </style>
 </body>
+</html> 
 </html> 
